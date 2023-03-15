@@ -145,19 +145,24 @@ class GccStyleDumper(SarifDumper):
     def writeln(self):
         self.write('\n')
 
+def handle_sarif_path(sarif_path):
+    sarif_file = sarif.loader.load_sarif_file(sarif_path)
+    dumper = GccStyleDumper(sys.stdout, sarif_path.parent)
+    for result in sarif_file.get_results():
+        dumper.dump_sarif_result(result)
+
 def main():
     parser = argparse.ArgumentParser(
         description = ('Load SARIF file(s) at or below a PATH'
                        ' and dump to stdout in a GCC-like format'))
     parser.add_argument('path', type=Path)
     args = parser.parse_args()
-    #print(args)
 
-    for sarif_path in Path(args.path).glob('**/*.sarif'):
-        #print(sarif_path)
-        sarif_file = sarif.loader.load_sarif_file(sarif_path)
-        dumper = GccStyleDumper(sys.stdout, sarif_path.parent)
-        dumper.dump_sarif_file(sarif_file)
+    if args.path.is_dir():
+        for sarif_path in Path(args.path).glob('**/*.sarif'):
+            handle_sarif_path(sarif_path)
+    else:
+        handle_sarif_path(args.path)
 
 if __name__ == '__main__':
     main()
