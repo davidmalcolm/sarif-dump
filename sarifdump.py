@@ -72,6 +72,25 @@ class GccStyleDumper(SarifDumper):
 
         #pprint(result)
 
+    def dump_sarif_notification(self, notification):
+        """
+        Handle a §3.58 notification object
+        """
+        # §3.58.4 locations property
+        if 'locations' in notification:
+            loc = notification['locations'][0]
+            self.write_location(loc)
+
+        # §3.58.6 level property
+        level = notification.get('level', None)
+        if level:
+            if level == 'error':
+                level = 'internal compiler error'
+            self.write(f'{level}: ')
+
+        # §3.58.5 message property
+        self.write('%s' % notification['message']['text'])
+
     def write_location(self, location):
         """
         Handle a §3.28 location object.
@@ -150,6 +169,13 @@ def handle_sarif_path(sarif_path):
     dumper = GccStyleDumper(sys.stdout, sarif_path.parent)
     for result in sarif_file.get_results():
         dumper.dump_sarif_result(result)
+
+    run_data = sarif_file.runs[0].run_data
+    invocations = run_data.get('invocations', None)
+    if invocations:
+        for invocation in invocations:
+            for notification in invocation['toolExecutionNotifications']:
+                dumper.dump_sarif_notification(notification)
 
 def main():
     parser = argparse.ArgumentParser(
