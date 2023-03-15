@@ -102,10 +102,12 @@ class GccStyleDumper(SarifDumper):
         to click on the diagnostic in Emacs's compilation buffer.
         """
         filename = physicalLocation['artifactLocation']['uri']
-        self.write('%s:%i:%i: '
-                   % (Path(self.base_path, filename),
-                      physicalLocation['region']['startLine'],
-                      physicalLocation['region']['startColumn']))
+        region = physicalLocation['region']
+        self.write('%s:%i:' % (Path(self.base_path, filename),
+                               region['startLine']))
+        if 'startColumn' in region:
+            self.write('%i:' % physicalLocation['region']['startColumn'])
+        self.write(' ')
 
     def write_reporting_descriptor_reference(self, rdr):
         """
