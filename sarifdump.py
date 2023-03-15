@@ -36,10 +36,6 @@ class GccStyleDumper(SarifDumper):
         self.base_path = base_path
         self.last_logical_location = None
 
-    def dump_sarif_file(self, sarif_file):
-        for result in sarif_file.get_results():
-            self.dump_sarif_result(result)
-
     def dump_sarif_result(self, result):
         """
         Handle a §3.27 result object
